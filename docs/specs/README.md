@@ -49,6 +49,17 @@ docs/specs/
     └── extension-guidelines.md  # Adding new agents and features
 ```
 
+## Traceability Matrix
+
+| Scope | Primary Specification | Supporting References | Validation Owner |
+|-------|-----------------------|-----------------------|------------------|
+| FR-001 – FR-006 (Agents, Search, Reporting, UX) | `requirements/functional.md` | `architecture/system-design.md`, `interfaces/api-specification.md`, `interfaces/data-models.md` | Product Lead + Eng Lead |
+| NFR-001 – NFR-004 (Perf, Reliability, Security, Scale) | `requirements/non-functional.md` | `deployment/infrastructure.md`, `deployment/monitoring.md` | Platform Lead |
+| Component Implementation & Patterns | `architecture/component-design.md` | `implementation/code-patterns.md`, `implementation/migration-roadmap.md` | Tech Lead |
+| Tooling & Interfaces | `interfaces/tool-interfaces.md` | `interfaces/api-specification.md`, Unified Tool catalog | Integration Owner |
+| Deployment & Operations | `deployment/container-architecture.md` | `deployment/infrastructure.md`, `deployment/monitoring.md`, `governance/maintenance-procedures.md` | SRE Lead |
+| Governance & Extensions | `governance/development-standards.md` | `governance/extension-guidelines.md`, `governance/maintenance-procedures.md` | Architecture Review Board |
+
 ## Migration Framework
 
 **Target Framework**: LangGraph 1.0+
