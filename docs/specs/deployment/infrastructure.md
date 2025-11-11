@@ -792,3 +792,10 @@ cost_monitoring:
 ```
 
 This infrastructure specification provides a comprehensive foundation for deploying the modernized BettaFish system with high availability, security, and scalability requirements.
+
+## Validation & Acceptance
+- **Availability:** Multi-AZ clusters demonstrate ≥99.5% uptime across rolling 30-day windows.
+- **Capacity:** Load tests at 2× projected peak keep p95 latency <1 s and database CPU <65%.
+- **Resilience:** Quarterly disaster-recovery drills prove RTO ≤60 min and RPO ≤5 min.
+- **Cost Controls:** Budget alerts trigger at 80% monthly spend with documented response.
+- **Compliance:** Infrastructure Terraform plan passes policy-as-code checks (OPA) with zero violations before apply.

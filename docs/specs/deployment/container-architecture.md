@@ -1195,3 +1195,10 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 ```
 
 This container architecture provides a comprehensive, scalable, and secure foundation for deploying the modernized BettaFish system across different environments.
+
+## Validation & Acceptance
+- **Build Reproducibility:** `docker buildx bake` succeeds for all images with SBOM artifacts published to the registry.
+- **Runtime Compliance:** Kubernetes admission controller verifies non-root, read-only rootfs, and resource limits before scheduling.
+- **Health Coverage:** Liveness/readiness probes report <1% false positives during 24 h soak tests.
+- **Security Scanning:** Nightly Trivy scans remain free of Critical/High vulnerabilities; Medium issues resolved within 5 business days.
+- **Performance Envelope:** Horizontal pod autoscaler maintains CPU <70% and memory <80% for 95th percentile workloads.

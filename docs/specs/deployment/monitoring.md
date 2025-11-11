@@ -1063,3 +1063,10 @@ async def liveness_check():
 ```
 
 This comprehensive monitoring and observability specification ensures the modernized BettaFish system has full visibility into its operations, enabling proactive issue detection and performance optimization.
+
+## Validation & Acceptance
+- **Telemetry Coverage:** 100% of workflows emit traces with shared correlation IDs; gaps block release.
+- **Alert Quality:** Noise budget ≤1 false page per week; every alert maps to a documented runbook.
+- **Dashboard SLAs:** Grafana dashboards load <3 s and show live data with ≤1 min staleness.
+- **Synthetic Checks:** Multi-region health checks run every 60 s with ≥99% success over rolling 7 days.
+- **Postmortem Discipline:** All Sev1/Sev2 incidents contain linked monitoring evidence and improvement actions.
