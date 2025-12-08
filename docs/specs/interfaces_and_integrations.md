@@ -86,6 +86,11 @@ This document catalogs the main external interfaces (HTTP APIs, CLIs) and integr
     - On success: `{ success: true, message: "系统启动成功", logs: [string] }`.
     - On failure: `{ success: false, message: string, logs: [string], errors: [string] }`.
 
+- `/api/system/shutdown`  
+  - Method: `POST`  
+  - Description: Gracefully shut down the Flask server and all managed components by terminating Streamlit child processes and stopping ForumEngine, then exiting the main process asynchronously.  
+  - Response (JSON): `{ success: bool, message: string, ports?: [string] }` (includes a list of target ports when available).
+
 ### 1.2 Socket.IO Events (Flask Main App)
 
 - `connect` (server → client): on connection, server emits `status` with message.
@@ -154,6 +159,18 @@ Mounted under `/api/report` when available.
 - `/api/report/log/clear`  
   - Method: `POST`  
   - Description: Clear `report.log`.
+
+- `/api/report/export/pdf/<task_id>`  
+  - Method: `GET`  
+  - Description: Export a completed report (identified by `task_id`) to PDF using the saved Document IR; performs a PDF dependency check (Pango/WeasyPrint) and returns a `503` JSON error with guidance if dependencies are missing.  
+  - Query params: `optimize` (optional, default `true`) to enable layout optimization.  
+  - Response: `application/pdf` stream with `Content-Disposition: attachment`, or JSON error.
+
+- `/api/report/export/pdf-from-ir`  
+  - Method: `POST`  
+  - Request body (JSON): `{ "document_ir": { ... }, "optimize"?: bool }`.  
+  - Description: Render a provided Document IR JSON payload directly to PDF without referencing a stored task, subject to the same PDF dependency checks as above.  
+  - Response: `application/pdf` or JSON error.
 
 ---
 
