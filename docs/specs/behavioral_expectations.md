@@ -121,9 +121,9 @@ From `ReportEngine/agent.py` and `ReportEngine/flask_interface.py`:
     - Prefer a user-provided `custom_template` when given.
     - Otherwise, call `TemplateSelectionNode.run(...)` with `{ query, reports, forum_logs }` and record the chosen template name and selection reasoning in state metadata.
     - On failure, fall back to a standard “社会公共热点事件分析报告” template.
-  - HTML generation:
-    - Use `HTMLGenerationNode.run` with structured inputs (query, three reports, forum logs, selected template) to create final HTML.
-    - Mark `ReportState` as completed and store HTML content.
+  - Report construction and HTML generation:
+    - Use nodes such as `TemplateSelectionNode`, `DocumentLayoutNode`, `WordBudgetNode`, and `ChapterGenerationNode` to build a validated Document IR from the three engine reports plus `forum.log`.
+    - Use the HTML renderer (via `ReportAgent.generate_report`) to turn the IR into final HTML, then mark `ReportState` as completed and store HTML content.
   - Saving outputs:
     - Write HTML reports to `OUTPUT_DIR` with names `final_report_<query>_<timestamp>.html`.
     - Save state as `report_state_<query>_<timestamp>.json`, storing metadata like template name and generation time.
