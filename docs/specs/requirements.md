@@ -76,3 +76,88 @@ The system must actively monitor user-defined interests, not just respond to ad-
     2.  **Expand**: Add international sources.
     3.  **Scale**: Integrate Hatchet for background execution.
 *   **Backward Compatibility**: The existing Flask API structure should be maintained where possible, but updated to support async task submission.
+
+---
+
+## 6. Current System FR/NFR Reference
+
+The sections above describe **modernization requirements** for the future architecture (Hatchet + Agent SDK stack). This section captures a concise FR/NFR snapshot for the **current BettaFish system as implemented in this repo**, so that specs, traceability, and modernization work share a common vocabulary.
+
+### 6.1 Legend
+
+- **FR‑xx** – Functional Requirements for the existing system.
+- **NFR‑xx** – Non‑Functional Requirements for the existing system.
+- **Status**: implemented / partial / gap (planned).
+
+See `traceability_and_gaps.md` for detailed mappings from these IDs to concrete modules.
+
+### 6.2 Functional Requirements (FR‑xx)
+
+**FR‑01 – End‑to‑End Analysis Workflow (implemented)**  
+The system shall allow a user to trigger a full multi‑agent analysis and produce a consolidated report via the web UI.
+
+**FR‑02 – Configurable Environment & Credentials (implemented)**  
+The system shall load configuration (DB, LLM, search API keys, base URLs, model names, etc.) from environment variables and expose a limited set for runtime inspection/update.
+
+**FR‑03 – Docker & Source Deployments (implemented)**  
+The system shall support both Docker‑based deployment (via `docker-compose.yml`) and source‑based execution (via `python app.py` + Streamlit CLIs).
+
+**FR‑10/11 – QueryEngine Search & Reflection (implemented)**  
+The system shall provide a QueryEngine that performs multi‑step web/news search and reflection‑based summarization using Tavily‑like tools.
+
+**FR‑20/21/22/23 – InsightEngine DB Search, Keyword Optimization, Sentiment (implemented / partial)**  
+The system shall provide an InsightEngine that queries internal/private DBs, supports keyword optimization, performs optional sentiment analysis via `SentimentAnalysisModel`, and maintains per‑paragraph research state.
+
+**FR‑30/31 – MediaEngine Multimodal Analysis & Reflection (implemented)**  
+The system shall provide a MediaEngine that performs multimodal/web search (via Bocha tools) and reflection‑based summarization.
+
+**FR‑40/41/42 – ReportEngine (implemented, with noted task‑semantics gaps)**  
+The system shall select templates, build a Document IR from engine reports + `forum.log`, render HTML (and optionally PDF), persist artifacts, and expose HTTP/SSE APIs for report tasks.
+
+**FR‑50/51/52 – ForumEngine (implemented)**  
+The system shall monitor engine logs, extract SummaryNode outputs, build a normalized forum log, and host an LLM moderator whose guidance is also logged and surfaced to the UI.
+
+**FR‑60/61 – Web UI & Streamlit Apps (implemented)**  
+The system shall provide a unified Flask dashboard with Socket.IO streaming plus per‑engine Streamlit apps and `/api/search` endpoints.
+
+**FR‑70/71/72 – MindSpider Crawling (implemented)**  
+The system shall initialize MindSpider’s DB on system start and provide CLIs for topic extraction and deep sentiment crawling across platforms.
+
+**FR‑80 – HTTP Auth & Access Control (gap)**  
+The system should provide authentication and/or access control for HTTP and SSE/WebSocket endpoints when deployed beyond localhost.
+
+**FR‑81 – MindSpider Operations from Web UI (gap)**  
+The system should expose basic MindSpider operations (e.g., `--broad-topic`, `--deep-sentiment`) via the main dashboard or REST.
+
+### 6.3 Non‑Functional Requirements (NFR‑xx)
+
+**NFR‑01 – Resilient External API Calls (implemented/ongoing)**  
+External LLM/search API calls shall use standardized retry and backoff policies (e.g., `with_graceful_retry`).
+
+**NFR‑02 – Robust Log Parsing & Tolerance (implemented)**  
+ForumEngine log parsing shall tolerate legacy and loguru formats, handle malformed JSON gracefully, and avoid polluting forum content with error logs.
+
+**NFR‑10 – Async I/O & Streaming Responsiveness (partial)**  
+The system should keep log and forum streaming responsive under normal workloads (child process streaming + Socket.IO + SSE), though no explicit throughput/latency SLAs are defined.
+
+**NFR‑20 – Secret & PII Handling (implemented, requires discipline)**  
+Secrets (API keys, DB passwords) shall be sourced from environment/`.env` and not hardcoded; logs should avoid including secrets or unnecessary PII.
+
+**NFR‑30 – Logging, Tests & Config Governance (partial)**  
+The system should maintain consistent logging, central configuration via `Settings`, and focused automated tests for critical paths (currently strongest for ForumEngine; some for ReportEngine sanitization).
+
+**NFR‑40 – Config Validation & Fail‑Fast Behavior (gap/partial)**  
+The system should validate required configuration at startup and fail fast with clear messages when misconfigured, instead of surfacing lower‑level runtime errors.
+
+**NFR‑41 – User‑Visible Error Messages & Status Indicators (gap/partial)**  
+The UI and APIs should clearly surface which subsystems (ReportEngine, MindSpider, etc.) are unavailable and why.
+
+**NFR‑42 – Task Lifecycle Transparency (partial)**  
+Long‑running tasks (especially reports) should expose clear lifecycle states (`running`, `completed`, `error`, `cancelled`, `not‑found`) to clients.
+
+**NFR‑50 – Automated Test Coverage for Core Flows (gap/partial)**  
+Core workflows (ReportEngine, agent pipelines, sentiment integration) should be covered by automated tests beyond the existing ForumEngine suite.
+
+**NFR‑60 – Performance & Resource Constraints Specification (gap)**  
+The system should document and, where possible, enforce reasonable performance and resource usage expectations (e.g., end‑to‑end latency targets, token budgets, concurrency limits).
+
