@@ -123,12 +123,19 @@ This document maps the major components of the BettaFish system to their respons
 **Purpose**: Multi-round report generation and formatting.
 
 - **Key Files & Directories**:
-  - `ReportEngine/agent.py` – orchestrates report-building workflows.
+  - `ReportEngine/agent.py` – `ReportAgent` orchestration (template selection → layout → word budget → chapter generation → IR composition → rendering and persistence).
   - `ReportEngine/llms/` – LLM interface for drafting and refining report sections.
   - `ReportEngine/nodes/`:
     - `base_node.py` – base node class.
     - `template_selection_node.py` – selects appropriate report template based on context.
-    - `html_generation_node.py` – converts structured content into final HTML.
+    - `document_layout_node.py` – designs document title, TOC, hero section, and visual theme.
+    - `word_budget_node.py` – plans per-chapter word budgets and global writing guidelines.
+    - `chapter_generation_node.py` – generates and validates chapter-level JSON content.
+  - `ReportEngine/core/` – template parsing, chapter storage, and document IR stitching (`template_parser.py`, `chapter_storage.py`, `stitcher.py`).
+  - `ReportEngine/ir/` – IR schema and validator for chapter JSON and document structure.
+  - `ReportEngine/renderers/` – HTML/PDF renderers and chart utilities.
+  - `ReportEngine/state/` – `ReportState` models and helpers.
+  - `ReportEngine/utils/` – configuration, dependency checks, JSON helpers, and chart validation/repair utilities.
   - `ReportEngine/report_template/` – library of report templates for different scenarios:
     - `企业品牌声誉分析报告模板.md`
     - `市场竞争格局舆情分析报告模板.md`
@@ -136,12 +143,12 @@ This document maps the major components of the BettaFish system to their respons
     - `特定政策或行业动态舆情分析报告.md`
     - `社会公共热点事件分析报告模板.md`
     - (and others)
-  - `ReportEngine/flask_interface.py` – exposes ReportEngine as a Flask blueprint, registering endpoints (e.g., for report generation) consumed by the main app.
+  - `ReportEngine/flask_interface.py` – exposes ReportEngine as a Flask blueprint, registering endpoints (report generation, progress, streaming logs, downloads, and PDF export) consumed by the main app.
 - **Responsibilities**:
   - Collect consolidated analysis outputs from all agents and the forum.
   - Choose the best-fitting template based on query type and context.
-  - Orchestrate multiple LLM calls to draft, refine, and finalize each report section.
-  - Produce final HTML (and potentially other formats) stored under `final_reports/`.
+  - Orchestrate multiple LLM calls to design layout, plan word budgets, draft, refine, and validate each report chapter, composing them into a Document IR.
+  - Render the IR into final HTML (and optionally PDF) and store artifacts under `final_reports/` and IR output directories.
 
 ---
 
@@ -251,6 +258,8 @@ This document maps the major components of the BettaFish system to their respons
   - Central entrypoint for running tests.
 - `tests/test_monitor.py`
   - Tests ForumEngine’s monitoring behavior against sample logs.
+- `tests/test_report_engine_sanitization.py`
+  - Tests ReportEngine’s handling and sanitization of generated content.
 - `tests/forum_log_test_data.py`
   - Provides synthetic forum log data for testing parser behavior.
 - `tests/README.md`
