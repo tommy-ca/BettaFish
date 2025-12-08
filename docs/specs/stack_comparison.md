@@ -51,4 +51,6 @@ We are evaluating two modern stacks for the BettaFish agent system. Both use **H
     *   You want to move fast and rely on the model's reasoning capabilities.
     *   The tasks are open-ended research (BettaFish's core use case).
 
-**Verdict for BettaFish**: **Claude Agent SDK** is likely the better fit for "Deep Research" and "Social Sentiment" analysis, as these are open-ended tasks where Claude 3.5 excels. However, keeping **LangGraph** as an option is wise if model independence is a future requirement.
+**Verdict for BettaFish**: **Stack A (LangGraph)** has been selected for the current modernization phase.
+*   **Reasoning**: We prioritize model agnosticism (allowing users to swap between OpenAI, Anthropic, or open-source models) and the need for explicit, structured control over the multi-agent debate process ("The Forum").
+*   **Status**: Implementation is proceeding with **LangGraph + Hatchet**. Claude Agent SDK remains a potential alternative for specific "Deep Research" sub-agents in the future.

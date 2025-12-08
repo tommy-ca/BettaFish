@@ -154,20 +154,26 @@ This document maps the major components of the BettaFish system to their respons
 
 ## 7. ForumEngine (`ForumEngine/`)
 
-**Purpose**: Multi-agent forum monitor and coordinator.
+**Purpose**: Multi-agent forum monitor, coordinator (Legacy), and Graph Orchestrator (Modern).
 
-- **Key Files**:
-  - `ForumEngine/monitor.py` – main monitoring logic:
-    - `start_forum_monitoring`, `stop_forum_monitoring` used by `app.py`.
-    - Watches agent logs and writes forum messages to `logs/forum.log`.
-  - `ForumEngine/llm_host.py` – LLM-based forum host/moderator:
-    - Summarizes agent exchanges.
-    - Provides guidance for the next analysis round.
+- **Legacy Components** (File-based):
+  - `ForumEngine/monitor.py` – watches `logs/forum.log` via regex.
+  - `ForumEngine/llm_host.py` – Legacy LLM moderator logic.
+  
+- **Modern Components** (Graph-based):
+  - `ForumEngine/graph/state.py` – Defines `ForumState` (TypedDict) shared by all nodes.
+  - `ForumEngine/graph/nodes/` – Graph Nodes that wrap legacy engines:
+    - `supervisor.py` – The Router node (Host).
+    - `query_agent.py` – Wraps `QueryEngine` logic.
+    - `media_agent.py` – Wraps `MindSpider`/`MediaEngine` logic.
+    - `insight_agent.py` – Wraps `InsightEngine` logic.
+  - `ForumEngine/graph/graph.py` – Constructs the `StateGraph` and compilation.
+  - `ForumEngine/graph/workflow.py` – Hatchet workflow entrypoint for durable execution.
+
 - **Responsibilities**:
-  - Maintain a centralized "forum" view of agent reasoning.
-  - Filter, parse, and enrich log entries into structured forum messages.
-  - Provide real-time updates to the front-end via Socket.IO (`forum_message` events).
-  - Ensure the debate loop between agents is coherent and productive.
+  - **Orchestration**: Manage the debate loop between agents using a structured State Graph.
+  - **Routing**: Decide which agent speaks next (Supervisor Node).
+  - **Execution**: Run reliably via Hatchet background workers.
 
 ---
 

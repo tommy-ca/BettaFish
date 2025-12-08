@@ -1,10 +1,10 @@
 # Behavioral Expectations – BettaFish
 
-This document captures key behavioral expectations of the system derived from the test suite and from the current engine/report/forum implementations. It is an initial snapshot intended to guide future development and testing.
+This document captures key behavioral expectations of the system derived from the test suite and from the current engine/report/forum implementations. It also includes new expectations for the **Modernization (LangGraph + Hatchet)** stack.
 
 ---
 
-## 1. ForumEngine Log Monitoring & Parsing
+## 1. ForumEngine Log Monitoring & Parsing (Legacy)
 
 ### 1.1 Target Log Line Detection
 
@@ -122,7 +122,7 @@ From `ReportEngine/agent.py` and `ReportEngine/flask_interface.py`:
     - Otherwise, call `TemplateSelectionNode.run(...)` with `{ query, reports, forum_logs }` and record the chosen template name and selection reasoning in state metadata.
     - On failure, fall back to a standard “社会公共热点事件分析报告” template.
   - Report construction and HTML generation:
-    - Use nodes such as `TemplateSelectionNode`, `DocumentLayoutNode`, `WordBudgetNode`, and `ChapterGenerationNode` to build a validated Document IR from the three engine reports plus `forum.log`.
+    - Use nodes such as `TemplateSelectionNode`, `DocumentLayoutNode`, `WordBudgetNode`, `ChapterGenerationNode` to build a validated Document IR from the three engine reports plus `forum.log`.
     - Use the HTML renderer (via `ReportAgent.generate_report`) to turn the IR into final HTML, then mark `ReportState` as completed and store HTML content.
   - Saving outputs:
     - Write HTML reports to `OUTPUT_DIR` with names `final_report_<query>_<timestamp>.html`.
@@ -213,14 +213,23 @@ The current `tests/test_monitor.py` suite encodes several invariants:
 - Error logs and tracebacks from SummaryNode must **not** appear in forum-derived content.
 - Real-world log examples (for QueryEngine, InsightEngine, MediaEngine) must be parsed into human-readable content containing key phrases like company names and “核心发现/更新版/综合信息概览” without JSON field names leaking.
 
-Future tests for other components (ReportEngine, agents, sentiment integration) should mirror this style by providing realistic sample data and asserting behavior at the boundary points (e.g., endpoints, node outputs, report files).
-
 ---
 
-## 6. Alignment with SDD Flow
+## 6. Graph & Orchestration Expectations (Modernization)
 
-This document implements **Phase 4 – Behaviour via Tests & Examples** from `docs/specs/spec_discovery_and_requirements_flow.md` and will be used to:
+### 6.1 Supervisor Node Behavior
+- **Routing Logic**: The Supervisor must analyze `ForumState.messages` and `research_findings` to determine the `next_speaker`.
+- **Termination**:
+    - If `iteration_count` exceeds `MAX_ITERATIONS` (default 5), it MUST output `ReportAgent` (or `FINISH`) to force a conclusion.
+    - If the user query is simple and one round of search is sufficient, it SHOULD output `ReportAgent` early.
+- **Output Format**: It must produce a structured JSON with `next_speaker` and `reasoning`.
 
-- Drive future test design for new features by clarifying expected behavior at log, API, and report boundaries.
-- Inform functional requirements about forum behavior, summary generation, and error handling.
-- Provide concrete examples when debugging regressions in log parsing, forum orchestration, or report generation.
+### 6.2 Hatchet Worker Behavior
+- **Durable Execution**: The `BettaFishWorkflow` must be idempotent where possible. If a worker crashes during a step, Hatchet should be able to retry that step (or the graph state should persist to allow resumption).
+- **Concurrency**: The worker should handle multiple workflow runs in parallel (limited by Hatchet worker concurrency settings).
+- **Timeouts**: Individual steps (especially LLM calls and Search) should have explicit timeouts to prevent zombie tasks.
+
+### 6.3 Agent Wrapper Behavior
+- **Legacy Adaptation**: The `*AgentNode` wrappers (e.g., `QueryAgentNode`) must interface with the existing `DeepSearchAgent` logic.
+    - Ideally, they should call the agent logic *in-process* if thread-safe, or via subprocess if strictly necessary (though in-process is preferred for the graph).
+- **State Updates**: Agents must strictly adhere to the `AgentOutput` schema. They must NOT modify `ForumState` directly; they only return their output, which the Graph runtime merges into the state.

@@ -244,9 +244,35 @@ These are used for standalone model evaluation and likely for debugging/experime
 
 ---
 
-## 4. External Services & APIs
+## 4. Hatchet & LangGraph Orchestration (New)
 
-### 4.1 LLM Providers (OpenAI-Compatible)
+### 4.1 Hatchet Workflows
+The new architecture introduces durable execution workflows managed by Hatchet.
+
+*   **Service Name**: `bettafish-worker` (The Python worker process connecting to Hatchet).
+*   **Workflow**: `bettafish-analysis-workflow`
+    *   **Input**: `{ "query": str, "mode": "deep" | "fast" }`
+    *   **Trigger**:
+        *   Manual: via CLI or API.
+        *   Scheduled: via `bettafish-cron-workflow`.
+    *   **Steps**:
+        1.  `run_analysis`: Invokes the compiled LangGraph application.
+        2.  `persist_results`: Saves the final `ForumState` to Postgres.
+
+### 4.2 Internal Graph Transitions
+The `ForumState` object is the contract between internal nodes.
+
+*   **Supervisor -> Agent**: Passes `messages` (history) and `user_query`.
+*   **Agent -> Supervisor**: Returns `AgentOutput` (summary + data).
+    *   `QueryAgentNode`: Returns search summaries + source URLs.
+    *   `MediaAgentNode`: Returns social sentiment + crawled stats.
+    *   `InsightAgentNode`: Returns internal DB records.
+
+---
+
+## 5. External Services & APIs
+
+### 5.1 LLM Providers (OpenAI-Compatible)
 
 All engines use OpenAI-compatible chat completion APIs via provider-specific base URLs:
 
@@ -263,7 +289,7 @@ All engines use OpenAI-compatible chat completion APIs via provider-specific bas
   - MediaEngine / InsightEngine: similar `LLMClient` wrappers.
   - ForumEngine host: `ForumEngine/llm_host.ForumHost` using `OpenAI(api_key=..., base_url=...)` to call `client.chat.completions.create`.
 
-### 4.2 Web & Multimodal Search APIs (QueryEngine / MediaEngine)
+### 5.2 Web & Multimodal Search APIs (QueryEngine / MediaEngine)
 
 - `QueryEngine/tools.TavilyNewsAgency`:
   - Wraps Tavily-like news search for multiple tools:
@@ -279,7 +305,7 @@ All engines use OpenAI-compatible chat completion APIs via provider-specific bas
 
 - These calls occur inside `MediaEngine.agent.DeepSearchAgent.execute_search_tool`, which normalizes `BochaResponse.webpages` into the common search-result schema used by the MediaEngine pipeline.
 
-### 4.3 Media Crawling & DB APIs (InsightEngine / MindSpider)
+### 5.3 Media Crawling & DB APIs (InsightEngine / MindSpider)
 
 - `InsightEngine.tools.MediaCrawlerDB`:
   - Local DB abstraction over crawled media and comments.
@@ -291,7 +317,7 @@ All engines use OpenAI-compatible chat completion APIs via provider-specific bas
   - Platform-specific crawlers live under `MindSpider/DeepSentimentCrawling/MediaCrawler` and `platform_crawler.py`.
   - Platform coverage includes Weibo, Xiaohongshu, Douyin, Kuaishou, etc. (per README and config examples).
 
-### 4.4 Sentiment Analysis Models
+### 5.4 Sentiment Analysis Models
 
 - Integrated via `InsightEngine/tools/sentiment_analyzer.py` (not fully reproduced here but implied by README and imports):
   - Supports model types: `bert`, `multilingual`, `qwen`, etc.
@@ -303,7 +329,7 @@ All engines use OpenAI-compatible chat completion APIs via provider-specific bas
   - Fine-tuned BERT/GPT-2 models and small Qwen models.
   - Traditional ML models used for lower-resource scenarios.
 
-### 4.5 Retry & Resilience
+### 5.5 Retry & Resilience
 
 - `utils/retry_helper.py` (used in `ForumEngine/llm_host.py`) provides:
   - `with_graceful_retry(SEARCH_API_RETRY_CONFIG, ...)` decorator around API calls.
@@ -311,9 +337,9 @@ All engines use OpenAI-compatible chat completion APIs via provider-specific bas
 
 ---
 
-## 5. Cross-Component Integration Flows
+## 6. Cross-Component Integration Flows
 
-### 5.1 End-to-End Report Generation
+### 6.1 End-to-End Report Generation
 
 1. User submits query via Flask UI (`/api/search` and UI controls).  
 2. Main app ensures `insight|media|query` apps and ForumEngine are running.  
@@ -325,7 +351,7 @@ All engines use OpenAI-compatible chat completion APIs via provider-specific bas
    - Calls `ReportAgent.generate_report` using LLM to select templates and generate multi-section HTML.
    - Saves final HTML and state files and returns task metadata via `/status` and `/progress` endpoints.
 
-### 5.2 Forum Host Integration
+### 6.2 Forum Host Integration
 
 1. `ForumEngine.monitor.LogMonitor` tracks agent summary outputs and writes them into `forum.log` with `[HH:MM:SS] [SOURCE] content` format.  
 2. Once `agent_speeches_buffer` reaches 5 messages, `_trigger_host_speech()` calls `ForumEngine.llm_host.generate_host_speech`.  
@@ -334,7 +360,7 @@ All engines use OpenAI-compatible chat completion APIs via provider-specific bas
 
 ---
 
-## 6. Alignment with SDD Flow
+## 7. Alignment with SDD Flow
 
 This document corresponds to **Phase 3 – Interfaces & Integration Points** in `docs/specs/spec_discovery_and_requirements_flow.md` and will be used to:
 
