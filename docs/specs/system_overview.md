@@ -198,5 +198,5 @@ This overview connects to the rest of the spec-driven documentation under `docs/
 - `component_map.md` – Detailed breakdown of modules, classes, and responsibilities.
 - `interfaces_and_integrations.md` – HTTP APIs, CLIs, data stores, and external services.
 - `behavioral_expectations.md` – Expected behaviours, edge cases, and invariants derived from tests and real logs.
-- `requirements.md` – Formal functional and non-functional requirements.
+- `requirements.md` – Formal functional and non-functional requirements (planned; to be added).
 - `traceability_and_gaps.md` – Mapping between requirements and implementation, plus known gaps and open questions.
