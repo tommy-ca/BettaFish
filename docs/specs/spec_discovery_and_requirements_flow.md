@@ -260,7 +260,7 @@ For shared utilities:
 - `component_map.md`
 - `interfaces_and_integrations.md`
 - `behavioral_expectations.md`
-- `requirements.md`
+- `requirements.md` (to be created; will hold formal FR/NFR items)
 - `traceability_and_gaps.md`
 
 These documents collectively implement the spec-driven development flow for this repo.
