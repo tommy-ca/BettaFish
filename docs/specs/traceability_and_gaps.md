@@ -1,6 +1,6 @@
 # Traceability & Gaps – BettaFish
 
-This document maps high-level requirements to their implementing components and records known gaps or open questions. It is intentionally lightweight and will grow as more detailed specs and tests are added.
+This document maps high-level requirements to their implementing components and records known gaps or open questions. It is intentionally lightweight and will grow as more detailed specs and tests are added. See `requirements.md` §6 for concise definitions of FR‑xx/NFR‑xx used here.
 
 ---
 
@@ -46,9 +46,10 @@ This table summarizes where key requirements are primarily implemented. Many req
   - `MediaEngine/nodes/*` (media-specific summary and structure nodes).
 
 - **FR-40/41/42 – ReportEngine**  
-  - `ReportEngine/agent.py` (`ReportAgent`, `FileCountBaseline`, template selection, HTML generation, saving).  
-  - `ReportEngine/flask_interface.py` (Blueprint, `ReportTask`, `/status`, `/generate`, `/progress`, `/result`, `/download`, `/cancel`, `/templates`, `/log*` endpoints).  
-  - `ReportEngine/nodes/*` (TemplateSelectionNode, HTMLGenerationNode).  
+  - `ReportEngine/agent.py` (`ReportAgent`, `FileCountBaseline`, template selection, document layout/word budget planning, chapter generation, IR composition, HTML/PDF rendering, saving).  
+  - `ReportEngine/flask_interface.py` (Blueprint, `ReportTask`, `/status`, `/generate`, `/progress`, `/result`, `/download`, `/cancel`, `/templates`, `/log*`, `/export/pdf/*` endpoints).  
+  - `ReportEngine/nodes/*` (`TemplateSelectionNode`, `DocumentLayoutNode`, `WordBudgetNode`, `ChapterGenerationNode`).  
+  - `ReportEngine/core/*`, `ReportEngine/ir/*`, `ReportEngine/renderers/*`, `ReportEngine/state/*` (template parsing, chapter storage, IR stitching, rendering, task/state models).  
   - `ReportEngine/report_template/*` (Markdown templates).
 
 - **FR-50/51/52 – ForumEngine**  
@@ -126,9 +127,9 @@ This section lists notable gaps between the requirements and the current impleme
 
 ### 2.6 Test Coverage Beyond ForumEngine
 
-- Current explicit tests focus on `ForumEngine/monitor.py` log parsing.
-- There is limited or no test coverage for:
-  - Report template selection and HTML generation contracts.  
+- Current explicit tests are strongest around `ForumEngine/monitor.py` log parsing; there is some coverage for ReportEngine sanitization (`tests/test_report_engine_sanitization.py`), but end-to-end report generation behavior remains largely untested.  
+- There is still limited coverage for:
+  - Report template selection, layout/word-budget planning, and chapter/IR generation contracts.  
   - QueryEngine/InsightEngine reflection loops and search tool selection.  
   - Sentiment analysis integration behavior and failure modes.
 - Potential improvement:
