@@ -1,0 +1,14 @@
+{
+  "analysis_summary": [
+    "Gap analysis indicates significant architectural shift from file-based to state-graph based coordination.",
+    "Core agent logic (Search, Insight) can be largely reused but needs wrapping in LangGraph Nodes.",
+    "New infrastructure (Hatchet, Postgres) required for durable execution."
+  ],
+  "implementation_options": [
+    {
+      "name": "Direct Migration",
+      "description": "Port agents directly to LangGraph nodes",
+      "tradeoffs": ["Clean architecture", "High effort"]
+    }
+  ]
+}
