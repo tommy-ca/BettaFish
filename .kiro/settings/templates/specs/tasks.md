@@ -10,4 +10,3 @@
 - Use Markdown list with checkboxes: `- [ ] Task Title`
 - Group by component or phase.
 - Tag tasks with complexity [S/M/L].
-
